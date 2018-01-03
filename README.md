@@ -3,8 +3,8 @@
 ## Install and run
 
 ```
-go get -u github.com/yappo/geniuslurker
-go build go/src/github.com/yappo/geniuslurker/geniuslurker_server/main.go
+go get -u github.com/AlexanderYAPPO/geniuslurker/
+go build ./geniuslurker_server/main.go
 ./main
 ```
 
