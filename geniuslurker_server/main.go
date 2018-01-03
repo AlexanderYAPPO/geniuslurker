@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/yappo/geniuslurker/geniuslurker"
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 	"log"
 	"net/http"
 )
