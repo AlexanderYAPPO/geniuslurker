@@ -31,6 +31,13 @@ func GetLyricsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Failed to get search results:", r)
+			http.Error(w, "Failed to search Genius", http.StatusInternalServerError)
+			return
+		}
+	}()
 	vars := mux.Vars(r)
 	res := GetSearchResults(vars["q"])
 	b, err := json.Marshal(res)

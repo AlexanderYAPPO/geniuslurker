@@ -1,14 +1,13 @@
 package geniuslurker
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-// TODO: change it to some url type
-const geniusBaseURL string = "https://api.genius.com/search?q="
+const geniusBaseURL = "https://api.genius.com/search"
+const geniusToken = "Bearer us4hrg63-ZYFCFmecW9iS3nXoLs5rkTkFIGhECwNHtMda0GyCINDkleGdmiKjAmx"
 
 type ResultJSON struct {
 	FullTitle string `json:"full_title"`
@@ -29,26 +28,24 @@ type BaseJSON struct {
 
 // Returns search results
 func GetSearchResults(searchString string) []ResultJSON {
-	var tmpBuffer bytes.Buffer
-	tmpBuffer.WriteString(geniusBaseURL)
-	tmpBuffer.WriteString(searchString)
-	geniusSearchURL := tmpBuffer.String()
-
 	httpClient := &http.Client{}
-	req, err := http.NewRequest("GET", geniusSearchURL, nil)
-	req.Header.Add("Authorization", "Bearer us4hrg63-ZYFCFmecW9iS3nXoLs5rkTkFIGhECwNHtMda0GyCINDkleGdmiKjAmx")
+	req, err := http.NewRequest("GET", geniusBaseURL, nil)
+	req.Header.Add("Authorization", geniusToken)
+	q := req.URL.Query()
+	q.Add("q", searchString)
+	req.URL.RawQuery = q.Encode()
+	fmt.Println(req.URL.String())
 	resp, err := httpClient.Do(req)
-	searchBody := resp.Body
-	defer searchBody.Close()
-
-	tmpBufferP := new(bytes.Buffer)
-	tmpBufferP.ReadFrom(searchBody)
-	jsonArray := tmpBufferP.Bytes()
-
-	var parsedJSON = new(BaseJSON)
-	err = json.Unmarshal(jsonArray, &parsedJSON)
 	if err != nil {
-		fmt.Println("whoops:", err)
+		fmt.Println("Request error:", err)
+		panic(err)
+	}
+
+	var parsedJSON BaseJSON
+	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
+	if err != nil {
+		fmt.Println("JSON parsing error:", err)
+		panic(err)
 	}
 
 	results := make([]ResultJSON, len(parsedJSON.Response.Hits), len(parsedJSON.Response.Hits))
