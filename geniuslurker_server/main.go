@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 	"log"
 	"net/http"
+
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
+	"github.com/gorilla/mux"
 )
 
 func main() {

@@ -3,11 +3,12 @@ package geniuslurker
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func fetchLyricsFromGenius(url string) string {

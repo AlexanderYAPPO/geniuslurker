@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/yappo/geniuslurker/geniuslurker"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 )
 
 func main() {
-	res := geniuslurker.GetSearchResults("Madvillain")
+	res := geniuslurker.GetSearchResults("MF DOOM")
 	fmt.Println(res[0].Url)
 
 	client := &http.Client{}
