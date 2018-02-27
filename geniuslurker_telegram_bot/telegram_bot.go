@@ -71,7 +71,7 @@ func main() {
 					//New chat
 					for _, searchResult := range searchResults {
 						bSearchResult, _ := json.Marshal(searchResult)
-						_, err = redisClient.LPush(redisKey, bSearchResult).Result()
+						_, err = redisClient.RPush(redisKey, bSearchResult).Result()
 						if err != nil {
 							fmt.Println("whoops:", err)
 							panic(err)
@@ -86,7 +86,7 @@ func main() {
 					}
 					for _, searchResult := range searchResults {
 						bSearchResult, _ := json.Marshal(searchResult)
-						_, err = redisClient.LPush(redisKey, bSearchResult).Result()
+						_, err = redisClient.RPush(redisKey, bSearchResult).Result()
 						if err != nil {
 							fmt.Println("whoops:", err)
 							panic(err)
@@ -121,7 +121,7 @@ func main() {
 
 				index, err := strconv.ParseInt(arg, 10, 64)
 				if err != nil || index < 0 || index > size {
-					fmt.Println("Incorrect input in chat: " + strconv.FormatInt(chatID, 10), err)
+					fmt.Println("Incorrect input in chat: "+strconv.FormatInt(chatID, 10), err)
 					_, err = api.SendMessage(ctx,
 						telegram.NewMessagef(update.Chat().ID,
 							"Incorrect input. Lyrics are not yet search or index is not in the boundaries.",
@@ -155,7 +155,7 @@ func main() {
 					lyrics = string(bodyBytes)
 				}
 
-				message := searchResult.FullTitle + "\n" + lyrics;
+				message := searchResult.FullTitle + "\n" + lyrics
 				_, err = api.SendMessage(ctx,
 					telegram.NewMessagef(update.Chat().ID,
 						message,
