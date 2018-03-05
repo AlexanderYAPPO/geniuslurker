@@ -9,24 +9,25 @@ import (
 const geniusBaseURL = "https://api.genius.com/search"
 const geniusToken = "Bearer us4hrg63-ZYFCFmecW9iS3nXoLs5rkTkFIGhECwNHtMda0GyCINDkleGdmiKjAmx"
 
+// ResultJSON represents an element of a found song
 type ResultJSON struct {
 	FullTitle string `json:"full_title"`
 	Url       string `json:"url"`
 }
 
-type HitJSON struct {
+type hitJSON struct {
 	Result ResultJSON `json:"result"`
 }
 
-type ResponseJSON struct {
-	Hits []HitJSON `json:"hits"`
+type responseJSON struct {
+	Hits []hitJSON `json:"hits"`
 }
 
-type BaseJSON struct {
-	Response ResponseJSON `json:"response"`
+type baseJSON struct {
+	Response responseJSON `json:"response"`
 }
 
-// Returns search results
+// GetSearchResults requests Genius API with a search request
 func GetSearchResults(searchString string) []ResultJSON {
 	httpClient := &http.Client{}
 	req, err := http.NewRequest("GET", geniusBaseURL, nil)
@@ -41,7 +42,7 @@ func GetSearchResults(searchString string) []ResultJSON {
 		panic(err)
 	}
 
-	var parsedJSON BaseJSON
+	var parsedJSON baseJSON
 	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
 	if err != nil {
 		fmt.Println("JSON parsing error:", err)

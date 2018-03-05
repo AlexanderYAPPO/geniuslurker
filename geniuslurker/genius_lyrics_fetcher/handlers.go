@@ -24,6 +24,7 @@ func fetchLyricsFromGenius(url string) string {
 	return lyrics
 }
 
+//GetLyricsHandler is a handler for /lyrics
 func GetLyricsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	url := vars["url"]
@@ -31,6 +32,7 @@ func GetLyricsHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, lyrics)
 }
 
+//SearchHandler is a handler for /search
 func SearchHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {

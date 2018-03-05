@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker/genius_lyrics_fetcher"
 	"github.com/gorilla/mux"
 )
 

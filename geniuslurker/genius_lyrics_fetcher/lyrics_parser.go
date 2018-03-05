@@ -2,8 +2,9 @@ package geniuslurker
 
 import (
 	"bytes"
-	"golang.org/x/net/html"
 	"io"
+
+	"golang.org/x/net/html"
 )
 
 func getLyricsBlockFlag(currentToken html.TokenType) bool {
@@ -45,7 +46,8 @@ func checkIfLyricsBlock(pageTokenizer *html.Tokenizer) bool {
 	return false
 }
 
-// Parse lyrics from Genius HTML page and returns the as string (including \n and other stuff)
+// GetLyricsFromHTML parses lyrics from Genius HTML page and returns the as a string (including \n and other stuff)
+// Basically traverses a page until lyrics block begins. Then returns the text builded from TextTokens
 func GetLyricsFromHTML(htmlDataReader io.Reader) string {
 	pageTokenizer := html.NewTokenizer(htmlDataReader)
 	var resultBuffer bytes.Buffer
