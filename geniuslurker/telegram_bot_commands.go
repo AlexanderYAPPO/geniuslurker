@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 	"github.com/bot-api/telegram"
 	"github.com/bot-api/telegram/telebot"
 	"golang.org/x/net/context"
@@ -38,7 +37,7 @@ func SearchCommand(ctx context.Context, arg string) error {
 	json.NewDecoder(resp.Body).Decode(&searchResults)
 	fmt.Println(searchResults, err)
 
-	redisClient := geniuslurker.GetRedisClient()
+	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
 	exists, err := redisClient.Exists(redisKey).Result()
 	if err != nil {
@@ -80,7 +79,7 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 	update := telebot.GetUpdate(ctx)
 	chatID := update.Chat().ID
 
-	redisClient := geniuslurker.GetRedisClient()
+	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
 	size, err := redisClient.LLen(redisKey).Result()
 	if err != nil {
