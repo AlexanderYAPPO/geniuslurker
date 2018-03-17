@@ -3,17 +3,12 @@ package geniuslurker
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/bot-api/telegram"
 	"github.com/bot-api/telegram/telebot"
 	"golang.org/x/net/context"
 )
-
-const geniusLurkerURL = "http://localhost:3000"
 
 // SearchCommand requests geniuslurker for search results from Genius
 func SearchCommand(ctx context.Context, arg string) error {
@@ -22,20 +17,7 @@ func SearchCommand(ctx context.Context, arg string) error {
 	update := telebot.GetUpdate(ctx)
 	chatID := update.Chat().ID
 
-	searchURL, _ := url.Parse(geniusLurkerURL + "/search")
-	query := searchURL.Query()
-	query.Set("q", arg)
-	searchURL.RawQuery = query.Encode()
-	req, _ := http.NewRequest("GET", searchURL.String(), nil)
-	geniusLurkerClient := &http.Client{}
-	resp, err := geniusLurkerClient.Do(req)
-	if err != nil {
-		fmt.Println("whoops:", err)
-	}
-
-	var searchResults []SearchResult
-	json.NewDecoder(resp.Body).Decode(&searchResults)
-	fmt.Println(searchResults, err)
+	searchResults := GetGeniusLurkerFetcherClient().Search(arg)
 
 	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
@@ -105,36 +87,11 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 	var searchResult SearchResult
 	json.Unmarshal(searchResultB, &searchResult)
 
-	searchURL, _ := url.Parse(geniusLurkerURL + "/lyrics")
-	query := searchURL.Query()
+	lyrics := GetGeniusLurkerFetcherClient().GetLyrics(searchResult)
 
-	query.Set("url", searchResult.URL)
-	searchURL.RawQuery = query.Encode()
-	req, _ := http.NewRequest("GET", searchURL.String(), nil)
-
-	geniusLurkerClient := &http.Client{}
-	resp, err := geniusLurkerClient.Do(req)
-	if err != nil {
-		fmt.Println("whoops:", err)
-		panic(err)
-	}
-	defer resp.Body.Close()
-	var lyrics string
-	if resp.StatusCode == http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		lyrics = string(bodyBytes)
-	}
-
-	message := searchResult.FullTitle + "\n" + lyrics
 	_, err = api.SendMessage(ctx,
 		telegram.NewMessagef(update.Chat().ID,
-			message,
+			lyrics,
 		))
 	return err
-}
-
-// SearchResult represents search result from genius
-type SearchResult struct {
-	FullTitle string `json:"full_title"`
-	URL       string `json:"url"`
 }

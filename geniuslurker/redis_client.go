@@ -15,11 +15,11 @@ const redisDB = 0        // use default DB
 
 var redisClient *redis.Client
 
-var once sync.Once
+var onceRedisClient sync.Once
 
 // GetRedisClient returns instance of a Redis client
 func GetRedisClient() *redis.Client {
-	once.Do(func() {
+	onceRedisClient.Do(func() {
 		redisClient = redis.NewClient(&redis.Options{
 			Addr:     redisURL,
 			Password: redisPassowrd,
