@@ -17,7 +17,7 @@ func SearchCommand(ctx context.Context, arg string) error {
 	update := telebot.GetUpdate(ctx)
 	chatID := update.Chat().ID
 
-	searchResults := GetGeniusLurkerFetcherClient().Search(arg)
+	searchResults := GetFetcherClient().Search(arg)
 
 	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
@@ -87,7 +87,7 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 	var searchResult SearchResult
 	json.Unmarshal(searchResultB, &searchResult)
 
-	lyrics := GetGeniusLurkerFetcherClient().GetLyrics(searchResult)
+	lyrics := GetFetcherClient().GetLyrics(searchResult)
 
 	_, err = api.SendMessage(ctx,
 		telegram.NewMessagef(update.Chat().ID,

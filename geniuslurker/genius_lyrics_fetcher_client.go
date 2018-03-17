@@ -9,20 +9,23 @@ import (
 	"sync"
 )
 
-type GeniusLurkerFetcherClient struct {
+// FetcherClient is a client for genius lurker backend
+type FetcherClient struct {
 	geniusLurkerFetcherHTTPClient http.Client
 }
 
 const geniusLurkerURL = "http://localhost:3000"
 
-func NewClient() *GeniusLurkerFetcherClient {
-	c := GeniusLurkerFetcherClient{
+// NewClient creates a new client
+func NewClient() *FetcherClient {
+	c := FetcherClient{
 		geniusLurkerFetcherHTTPClient: http.Client{},
 	}
 	return &c
 }
 
-func (c *GeniusLurkerFetcherClient) Search(searchString string) []SearchResult {
+// Search searches for possible songs
+func (c *FetcherClient) Search(searchString string) []SearchResult {
 	searchURL, _ := url.Parse(geniusLurkerURL + "/search")
 	query := searchURL.Query()
 
@@ -41,7 +44,8 @@ func (c *GeniusLurkerFetcherClient) Search(searchString string) []SearchResult {
 	return searchResults
 }
 
-func (c *GeniusLurkerFetcherClient) GetLyrics(searchResults SearchResult) string {
+// GetLyrics gets parsed layrics for particular url
+func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
 	searchURL, _ := url.Parse(geniusLurkerURL + "/lyrics")
 	query := searchURL.Query()
 
@@ -69,14 +73,14 @@ type SearchResult struct {
 	URL       string `json:"url"`
 }
 
-var geniusLurkerFetcherClient *GeniusLurkerFetcherClient
+var fetcherClient *FetcherClient
 
-var onceGeniusLurkerFetcherClient sync.Once
+var onceFetcherClient sync.Once
 
-// GetRedisClient returns instance of a Redis client
-func GetGeniusLurkerFetcherClient() *GeniusLurkerFetcherClient {
-	onceGeniusLurkerFetcherClient.Do(func() {
-		geniusLurkerFetcherClient = NewClient()
+// GetFetcherClient returns instance of a Genius Lyrics Fetcher client
+func GetFetcherClient() *FetcherClient {
+	onceFetcherClient.Do(func() {
+		fetcherClient = NewClient()
 	})
-	return geniusLurkerFetcherClient
+	return fetcherClient
 }
