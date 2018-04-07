@@ -3,11 +3,14 @@ package geniuslurker
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/bot-api/telegram"
 	"github.com/bot-api/telegram/telebot"
 	"golang.org/x/net/context"
 )
+
+const maxTelegramMessageLength = 4096
 
 // SearchCommand requests geniuslurker for search results from Genius
 func SearchCommand(ctx context.Context, arg string) error {
@@ -83,9 +86,47 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 
 	lyrics := GetFetcherClient().GetLyrics(searchResult)
 
-	_, err = api.SendMessage(ctx,
-		telegram.NewMessagef(update.Chat().ID,
-			lyrics,
-		))
+	lyricsBlocks := splitTextOnBlocks(lyrics)
+	for _, block := range lyricsBlocks {
+		_, err = api.SendMessage(ctx,
+			telegram.NewMessagef(update.Chat().ID,
+				block,
+			))
+		if err != nil {
+			ErrorLogger.Panicln("Failed to send message", err)
+		}
+	}
 	return err
+}
+
+func splitTextOnBlocks(originalText string) []string {
+	if len(originalText) <= maxTelegramMessageLength {
+		return []string{originalText}
+	}
+	var resultBlocks []string
+	verses := strings.Split(originalText, "\n\n")
+	left := 0
+	right := 0
+	currentBlockLength := 0
+	blockLengthAfterAppending := 0
+	for ; right < len(verses); right++ {
+		currentVerse := verses[right]
+		if len(currentVerse) > maxTelegramMessageLength {
+			ErrorLogger.Panicln("The length of a block exceeds the maxmium acceptable length")
+		}
+		if currentBlockLength == 0 {
+			blockLengthAfterAppending = len(currentVerse)
+		} else {
+			blockLengthAfterAppending = currentBlockLength + len(currentVerse) + 2
+		}
+		if blockLengthAfterAppending > maxTelegramMessageLength {
+			resultBlocks = append(resultBlocks, strings.Join(verses[left:right], "\n\n"))
+			left = right
+			currentBlockLength = len(currentVerse)
+		} else {
+			currentBlockLength += len(currentVerse)
+		}
+	}
+	resultBlocks = append(resultBlocks, strings.Join(verses[left:], "\n\n"))
+	return resultBlocks
 }

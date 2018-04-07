@@ -16,6 +16,5 @@ func main() {
 
 	http.Handle("/", rtr)
 
-	defer http.ListenAndServe(":3000", nil)
-	geniuslurker.InfoLogger.Println("Server started on 3000")
+	http.ListenAndServe(":3000", nil)
 }
