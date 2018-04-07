@@ -4,14 +4,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker/genius_lyrics_fetcher"
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker/geniuslyricsfetcher"
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	geniuslurker.InitLoggers()
 	rtr := mux.NewRouter()
-	rtr.HandleFunc("/search", geniuslurker.SearchHandler).Methods("GET").Queries("q", "{q}")
-	rtr.HandleFunc("/lyrics", geniuslurker.GetLyricsHandler).Methods("GET").Queries("url", "{url}")
+	rtr.HandleFunc("/search", geniuslyricsfetcher.SearchHandler).Methods("GET").Queries("q", "{q}")
+	rtr.HandleFunc("/lyrics", geniuslyricsfetcher.GetLyricsHandler).Methods("GET").Queries("url", "{url}")
 
 	http.Handle("/", rtr)
 

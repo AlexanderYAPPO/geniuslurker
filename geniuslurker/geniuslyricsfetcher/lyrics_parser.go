@@ -1,4 +1,4 @@
-package geniuslurker
+package geniuslyricsfetcher
 
 import (
 	"bytes"
