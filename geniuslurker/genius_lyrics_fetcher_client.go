@@ -2,7 +2,6 @@ package geniuslurker
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -35,12 +34,12 @@ func (c *FetcherClient) Search(searchString string) []SearchResult {
 
 	resp, err := c.geniusLurkerFetcherHTTPClient.Do(req)
 	if err != nil {
-		fmt.Println("whoops:", err)
+		ErrorLogger.Println("Failed to get search results", err)
 	}
 	defer resp.Body.Close()
 	var searchResults []SearchResult
 	json.NewDecoder(resp.Body).Decode(&searchResults)
-	fmt.Println(searchResults, err)
+	InfoLogger.Println(searchResults)
 	return searchResults
 }
 
@@ -55,8 +54,7 @@ func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
 
 	resp, err := c.geniusLurkerFetcherHTTPClient.Do(req)
 	if err != nil {
-		fmt.Println("whoops:", err)
-		panic(err)
+		ErrorLogger.Panicln("Failed to get lyrics", err)
 	}
 	defer resp.Body.Close()
 	var lyrics string

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 
 	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 	"github.com/bot-api/telegram"
@@ -11,12 +10,13 @@ import (
 )
 
 func main() {
+	geniuslurker.InitLoggers()
 	token := flag.String("token", "", "telegram bot token")
 	debug := flag.Bool("debug", false, "show debug information")
 	flag.Parse()
 
 	if *token == "" {
-		log.Fatal("token flag is required")
+		geniuslurker.ErrorLogger.Fatalln("token flag is required")
 	}
 
 	api := telegram.New(*token)
@@ -35,6 +35,7 @@ func main() {
 
 	err := bot.Serve(netCtx)
 	if err != nil {
-		log.Fatal(err)
+		geniuslurker.ErrorLogger.Fatalln(err)
 	}
+	geniuslurker.InfoLogger.Println("Telegram bot started")
 }

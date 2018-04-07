@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
@@ -17,6 +16,6 @@ func main() {
 
 	http.Handle("/", rtr)
 
-	log.Println("Listening...")
-	http.ListenAndServe(":3000", nil)
+	defer http.ListenAndServe(":3000", nil)
+	geniuslurker.InfoLogger.Println("Server started on 3000")
 }

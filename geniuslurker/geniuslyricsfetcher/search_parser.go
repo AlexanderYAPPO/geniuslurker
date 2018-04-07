@@ -2,8 +2,9 @@ package geniuslyricsfetcher
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 )
 
 const geniusBaseURL = "https://api.genius.com/search"
@@ -35,17 +36,17 @@ func GetSearchResults(searchString string) []ResultJSON {
 	q := req.URL.Query()
 	q.Add("q", searchString)
 	req.URL.RawQuery = q.Encode()
-	fmt.Println(req.URL.String())
+	geniuslurker.InfoLogger.Println("Search Url: ", req.URL.String())
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		fmt.Println("Request error:", err)
+		geniuslurker.ErrorLogger.Println("Request error:", err)
 		panic(err)
 	}
 
 	var parsedJSON baseJSON
 	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
 	if err != nil {
-		fmt.Println("JSON parsing error:", err)
+		geniuslurker.ErrorLogger.Println("JSON parsing error:", err)
 		panic(err)
 	}
 
