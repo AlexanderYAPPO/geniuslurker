@@ -3,20 +3,8 @@
 ## Install and run
 
 ```
-go get -u github.com/AlexanderYAPPO/geniuslurker/
-go build ./geniuslurker_server/main.go
-./main
-```
-
-## How to use
-
-Search Genius for lyrics
-```
-curl 'http://localhost:3000/search?q=great%20day%20mf%20doom'
-```
-
-Now you can pick any result from the previous request and
-use its url to get lyrics from Genius
-```
-curl 'http://localhost:3000/lyrics?url=https://genius.com/Madvillain-great-day-lyrics'
+git clone http://github.com/AlexanderYAPPO/geniuslurker/
+cd geniuslurker/
+sudo docker build -t geniuslurker .
+docker run -t -i -e GENIUS_TELEGRAM_TOKEN=<token> -p 80:80 geniuslurker
 ```

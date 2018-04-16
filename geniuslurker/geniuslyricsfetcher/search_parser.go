@@ -3,6 +3,7 @@ package geniuslyricsfetcher
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/AlexanderYAPPO/geniuslurker/geniuslurker"
 )
@@ -38,8 +39,10 @@ func GetSearchResults(searchString string) []ResultJSON {
 	req.URL.RawQuery = q.Encode()
 	geniuslurker.InfoLogger.Println("Search Url: ", req.URL.String())
 	resp, err := httpClient.Do(req)
+	//TODO: move to loggers
+	geniuslurker.InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
 	if err != nil {
-		geniuslurker.ErrorLogger.Println("Request error:", err)
+		geniuslurker.ErrorLogger.Println("Request error: ", err)
 		panic(err)
 	}
 

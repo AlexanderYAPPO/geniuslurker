@@ -15,6 +15,8 @@ func fetchLyricsFromGenius(url string) string {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	resp, err := client.Do(req)
+	//TODO: move to loggers
+	geniuslurker.InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
 	if err != nil {
 		geniuslurker.ErrorLogger.Println(err)
 	}
