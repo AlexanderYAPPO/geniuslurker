@@ -19,7 +19,6 @@ COPY . .
 RUN go get ./...
 WORKDIR /go/bin
 RUN go build /go/src/github.com/AlexanderYAPPO/geniuslurker/geniuslurker_apps/telegram_bot/telegram_bot.go
-RUN go build /go/src/github.com/AlexanderYAPPO/geniuslurker/geniuslurker_apps/genius_lurker/genius_lurker.go
 RUN touch /var/log/genius_lurker.log
 
 # install and configure supervisor

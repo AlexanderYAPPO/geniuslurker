@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"net/url"
+	"strings"
 	"sync"
 )
 
@@ -13,55 +13,68 @@ type FetcherClient struct {
 	geniusLurkerFetcherHTTPClient http.Client
 }
 
-const geniusLurkerURL = "http://localhost:3000"
+const geniusBaseURL = "https://api.genius.com/search"
+const geniusToken = "Bearer us4hrg63-ZYFCFmecW9iS3nXoLs5rkTkFIGhECwNHtMda0GyCINDkleGdmiKjAmx"
 
-// NewClient creates a new client
-func NewClient() *FetcherClient {
-	c := FetcherClient{
-		geniusLurkerFetcherHTTPClient: http.Client{},
-	}
-	return &c
+var fetcherClient *FetcherClient
+
+var onceFetcherClient sync.Once
+
+// GetFetcherClient returns instance of a Genius Lyrics Fetcher client
+func GetFetcherClient() *FetcherClient {
+	onceFetcherClient.Do(func() {
+		fetcherClient = &FetcherClient{
+			geniusLurkerFetcherHTTPClient: http.Client{},
+		}
+	})
+	return fetcherClient
 }
 
-// Search searches for possible songs
+// Search searches for possible songs with urls to lyrics
 func (c *FetcherClient) Search(searchString string) []SearchResult {
-	searchURL, _ := url.Parse(geniusLurkerURL + "/search")
-	query := searchURL.Query()
-
-	query.Set("q", searchString)
-	searchURL.RawQuery = query.Encode()
-	req, _ := http.NewRequest("GET", searchURL.String(), nil)
-
-	resp, err := c.geniusLurkerFetcherHTTPClient.Do(req)
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("GET", geniusBaseURL, nil)
+	req.Header.Add("Authorization", geniusToken)
+	q := req.URL.Query()
+	q.Add("q", searchString)
+	req.URL.RawQuery = q.Encode()
+	InfoLogger.Println("Search Url: ", req.URL.String())
+	resp, err := httpClient.Do(req)
+	//TODO: move to loggers
+	InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
 	if err != nil {
-		ErrorLogger.Println("Failed to get search results", err)
+		ErrorLogger.Println("Request error: ", err)
+		panic(err)
 	}
-	defer resp.Body.Close()
-	var searchResults []SearchResult
-	json.NewDecoder(resp.Body).Decode(&searchResults)
-	InfoLogger.Println(searchResults)
-	return searchResults
+
+	var parsedJSON baseJSON
+	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
+	if err != nil {
+		ErrorLogger.Println("JSON parsing error:", err)
+		panic(err)
+	}
+
+	results := make([]SearchResult, len(parsedJSON.Response.Hits), len(parsedJSON.Response.Hits))
+	for index, element := range parsedJSON.Response.Hits {
+		results[index] = element.Result
+	}
+	InfoLogger.Println(results)
+	return results
 }
 
 // GetLyrics gets parsed layrics for particular url
 func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
-	searchURL, _ := url.Parse(geniusLurkerURL + "/lyrics")
-	query := searchURL.Query()
-
-	query.Set("url", searchResults.URL)
-	searchURL.RawQuery = query.Encode()
-	req, _ := http.NewRequest("GET", searchURL.String(), nil)
-
-	resp, err := c.geniusLurkerFetcherHTTPClient.Do(req)
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", searchResults.URL, nil)
+	resp, err := client.Do(req)
+	// TODO: move to loggers
+	InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
 	if err != nil {
-		ErrorLogger.Panicln("Failed to get lyrics", err)
+		ErrorLogger.Println(err)
 	}
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
-	var lyrics string
-	if resp.StatusCode == http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		lyrics = string(bodyBytes)
-	}
+	lyrics := GetLyricsFromHTML(strings.NewReader(string(bodyBytes)))
 	return searchResults.FullTitle + "\n" + lyrics
 }
 
@@ -71,14 +84,14 @@ type SearchResult struct {
 	URL       string `json:"url"`
 }
 
-var fetcherClient *FetcherClient
+type hitJSON struct {
+	Result SearchResult `json:"result"`
+}
 
-var onceFetcherClient sync.Once
+type responseJSON struct {
+	Hits []hitJSON `json:"hits"`
+}
 
-// GetFetcherClient returns instance of a Genius Lyrics Fetcher client
-func GetFetcherClient() *FetcherClient {
-	onceFetcherClient.Do(func() {
-		fetcherClient = NewClient()
-	})
-	return fetcherClient
+type baseJSON struct {
+	Response responseJSON `json:"response"`
 }
