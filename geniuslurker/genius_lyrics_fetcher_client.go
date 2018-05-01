@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 )
@@ -14,7 +15,6 @@ type FetcherClient struct {
 }
 
 const geniusBaseURL = "https://api.genius.com/search"
-const geniusToken = "Bearer us4hrg63-ZYFCFmecW9iS3nXoLs5rkTkFIGhECwNHtMda0GyCINDkleGdmiKjAmx"
 
 var fetcherClient *FetcherClient
 
@@ -34,7 +34,7 @@ func GetFetcherClient() *FetcherClient {
 func (c *FetcherClient) Search(searchString string) []SearchResult {
 	httpClient := &HTTPClient{}
 	req, err := http.NewRequest("GET", geniusBaseURL, nil)
-	req.Header.Add("Authorization", geniusToken)
+	req.Header.Add("Authorization", os.Getenv("GENIUS_API_TOKEN"))
 	q := req.URL.Query()
 	q.Add("q", searchString)
 	req.URL.RawQuery = q.Encode()
