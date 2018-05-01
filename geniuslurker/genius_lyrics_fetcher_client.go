@@ -32,21 +32,13 @@ func GetFetcherClient() *FetcherClient {
 
 // Search searches for possible songs with urls to lyrics
 func (c *FetcherClient) Search(searchString string) []SearchResult {
-	httpClient := &http.Client{}
+	httpClient := &HTTPClient{}
 	req, err := http.NewRequest("GET", geniusBaseURL, nil)
 	req.Header.Add("Authorization", geniusToken)
 	q := req.URL.Query()
 	q.Add("q", searchString)
 	req.URL.RawQuery = q.Encode()
-	InfoLogger.Println("Search Url: ", req.URL.String())
-	resp, err := httpClient.Do(req)
-	//TODO: move to loggers
-	InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
-	if err != nil {
-		ErrorLogger.Println("Request error: ", err)
-		panic(err)
-	}
-
+	resp, _ := httpClient.Do(req)
 	var parsedJSON baseJSON
 	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
 	if err != nil {
@@ -58,20 +50,14 @@ func (c *FetcherClient) Search(searchString string) []SearchResult {
 	for index, element := range parsedJSON.Response.Hits {
 		results[index] = element.Result
 	}
-	InfoLogger.Println(results)
 	return results
 }
 
 // GetLyrics gets parsed layrics for particular url
 func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
-	client := &http.Client{}
+	client := &HTTPClient{}
 	req, _ := http.NewRequest("GET", searchResults.URL, nil)
-	resp, err := client.Do(req)
-	// TODO: move to loggers
-	InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
+	resp, _ := client.Do(req)
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	lyrics := GetLyricsFromHTML(strings.NewReader(string(bodyBytes)))
