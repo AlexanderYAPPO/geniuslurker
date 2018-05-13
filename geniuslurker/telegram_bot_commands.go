@@ -1,7 +1,6 @@
 package geniuslurker
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -23,30 +22,20 @@ func SearchCommand(ctx context.Context, arg string) error {
 
 	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
-	exists, err := redisClient.Exists(redisKey).Result()
-	if err != nil {
-		ErrorLogger.Panicln("Error accessing redis", err)
-	}
-	if exists != 0 {
+	exists := redisClient.Exists(redisKey)
+	if exists {
 		//cleanup previous values
-		_, err := redisClient.Del(redisKey).Result()
-		if err != nil {
-			ErrorLogger.Panicln("Error accessing redis", err)
-		}
+		redisClient.Del(redisKey)
 	}
 	for _, searchResult := range searchResults {
-		bSearchResult, _ := json.Marshal(searchResult)
-		_, err = redisClient.RPush(redisKey, bSearchResult).Result()
-		if err != nil {
-			ErrorLogger.Panicln("Error accessing redis", err)
-		}
+		redisClient.SearchResultsRPushJSON(redisKey, searchResult)
 	}
 
 	message := "Results: \n"
 	for index, searchResult := range searchResults {
 		message += strconv.Itoa(index) + ": " + searchResult.FullTitle + "\n"
 	}
-	_, err = api.SendMessage(ctx,
+	_, err := api.SendMessage(ctx,
 		telegram.NewMessagef(update.Chat().ID,
 			message,
 		))
@@ -62,10 +51,7 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 
 	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
-	size, err := redisClient.LLen(redisKey).Result()
-	if err != nil {
-		ErrorLogger.Panicln("Error accessing redis", err)
-	}
+	size := redisClient.LLen(redisKey)
 
 	index, err := strconv.ParseInt(arg, 10, 64)
 	if err != nil || index < 0 || index > size {
@@ -77,12 +63,7 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 		return err
 	}
 
-	searchResultB, err := redisClient.LIndex(redisKey, index).Bytes()
-	if err != nil {
-		ErrorLogger.Panicln("Error accessing redis", err)
-	}
-	var searchResult SearchResult
-	json.Unmarshal(searchResultB, &searchResult)
+	searchResult := redisClient.SearchResultsIndexJSON(redisKey, index)
 
 	lyrics := GetFetcherClient().GetLyrics(searchResult)
 
