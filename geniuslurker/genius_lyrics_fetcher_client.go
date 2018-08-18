@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/AlexanderYAPPO/geniuslurker/datastructers"
 )
 
 // FetcherClient is a client for genius lurker backend
@@ -31,7 +33,7 @@ func GetFetcherClient() *FetcherClient {
 }
 
 // Search searches for possible songs with urls to lyrics
-func (c *FetcherClient) Search(searchString string) []SearchResult {
+func (c *FetcherClient) Search(searchString string) []datastructers.SearchResult {
 	httpClient := &HTTPClient{}
 	req, err := http.NewRequest("GET", geniusBaseURL, nil)
 	req.Header.Add("Authorization", os.Getenv("GENIUS_API_TOKEN"))
@@ -39,22 +41,22 @@ func (c *FetcherClient) Search(searchString string) []SearchResult {
 	q.Add("q", searchString)
 	req.URL.RawQuery = q.Encode()
 	resp, _ := httpClient.Do(req)
-	var parsedJSON baseJSON
+	var parsedJSON datastructers.BaseJSON
 	err = json.NewDecoder(resp.Body).Decode(&parsedJSON)
 	if err != nil {
 		ErrorLogger.Println("JSON parsing error:", err)
 		panic(err)
 	}
 
-	results := make([]SearchResult, len(parsedJSON.Response.Hits), len(parsedJSON.Response.Hits))
+	results := make([]datastructers.SearchResult, len(parsedJSON.Response.Hits), len(parsedJSON.Response.Hits))
 	for index, element := range parsedJSON.Response.Hits {
 		results[index] = element.Result
 	}
 	return results
 }
 
-// GetLyrics gets parsed layrics for particular url
-func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
+// GetLyrics gets parsed lyrics for particular url
+func (c *FetcherClient) GetLyrics(searchResults datastructers.SearchResult) string {
 	client := &HTTPClient{}
 	req, _ := http.NewRequest("GET", searchResults.URL, nil)
 	resp, _ := client.Do(req)
@@ -62,22 +64,4 @@ func (c *FetcherClient) GetLyrics(searchResults SearchResult) string {
 	defer resp.Body.Close()
 	lyrics := GetLyricsFromHTML(strings.NewReader(string(bodyBytes)))
 	return searchResults.FullTitle + "\n" + lyrics
-}
-
-// SearchResult represents search result from genius
-type SearchResult struct {
-	FullTitle string `json:"full_title"`
-	URL       string `json:"url"`
-}
-
-type hitJSON struct {
-	Result SearchResult `json:"result"`
-}
-
-type responseJSON struct {
-	Hits []hitJSON `json:"hits"`
-}
-
-type baseJSON struct {
-	Response responseJSON `json:"response"`
 }

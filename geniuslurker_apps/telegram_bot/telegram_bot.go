@@ -11,6 +11,8 @@ import (
 
 func main() {
 	geniuslurker.InitLoggers()
+	geniuslurker.InitSettings()
+
 	token := flag.String("token", "", "telegram bot token")
 	debug := flag.Bool("debug", false, "show debug information")
 	flag.Parse()

@@ -13,7 +13,6 @@ type HTTPClient struct {
 // Do makes request and logs
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	resp, err := c.Client.Do(req)
-	// TODO: move to loggers
 	InfoLogger.Println(strings.Join([]string{req.URL.String(), resp.Status, resp.Proto}, " "))
 	if err != nil {
 		ErrorLogger.Panicln(err)

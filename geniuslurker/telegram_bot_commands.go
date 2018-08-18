@@ -13,7 +13,6 @@ const maxTelegramMessageLength = 4096
 
 // SearchCommand requests geniuslurker for search results from Genius
 func SearchCommand(ctx context.Context, arg string) error {
-
 	api := telebot.GetAPI(ctx)
 	update := telebot.GetUpdate(ctx)
 	chatID := update.Chat().ID
@@ -44,7 +43,6 @@ func SearchCommand(ctx context.Context, arg string) error {
 
 // GetLyricsCommand gets lyrics from genius lurker
 func GetLyricsCommand(ctx context.Context, arg string) error {
-
 	api := telebot.GetAPI(ctx)
 	update := telebot.GetUpdate(ctx)
 	chatID := update.Chat().ID

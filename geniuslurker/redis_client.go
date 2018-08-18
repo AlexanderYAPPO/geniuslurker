@@ -3,6 +3,7 @@ package geniuslurker
 import (
 	"encoding/json"
 
+	"github.com/AlexanderYAPPO/geniuslurker/datastructers"
 	"github.com/go-redis/redis"
 )
 
@@ -10,7 +11,7 @@ const redisURL = "localhost:6379"
 const redisPassowrd = "" // no password set
 const redisDB = 0        // use default DB
 
-//RedisClient is a representation of a real Redis client
+//RedisClient is a real Redis client
 type RedisClient struct {
 	redisClient *redis.Client
 }
@@ -25,7 +26,7 @@ func (client *RedisClient) Exists(key string) bool {
 }
 
 //SearchResultsRPushJSON pushes object of SearchResult inte Redis array value
-func (client *RedisClient) SearchResultsRPushJSON(key string, value SearchResult) {
+func (client *RedisClient) SearchResultsRPushJSON(key string, value datastructers.SearchResult) {
 	valueB, _ := json.Marshal(value)
 	_, err := client.redisClient.RPush(key, valueB).Result()
 	if err != nil {
@@ -51,12 +52,12 @@ func (client *RedisClient) LLen(key string) int64 {
 }
 
 //SearchResultsIndexJSON gets ith value of an array
-func (client *RedisClient) SearchResultsIndexJSON(key string, index int64) SearchResult {
+func (client *RedisClient) SearchResultsIndexJSON(key string, index int64) datastructers.SearchResult {
 	searchResultB, err := client.redisClient.LIndex(key, index).Bytes()
 	if err != nil {
 		ErrorLogger.Panicln("Error accessing redis", err)
 	}
-	var searchResult SearchResult
+	var searchResult datastructers.SearchResult
 	json.Unmarshal(searchResultB, &searchResult)
 	return searchResult
 }
