@@ -31,8 +31,8 @@ func main() {
 
 	// Use command middleware, that helps to work with commands
 	bot.Use(telebot.Commands(map[string]telebot.Commander{
-		"search": telebot.CommandFunc(geniuslurker.SearchCommand),
-		"lyrics": telebot.CommandFunc(geniuslurker.GetLyricsCommand),
+		"search": geniuslurker.ProduceBotCommand(geniuslurker.SearchCommand),
+		"lyrics": geniuslurker.ProduceBotCommand(geniuslurker.GetLyricsCommand),
 	}))
 
 	err := bot.Serve(netCtx)

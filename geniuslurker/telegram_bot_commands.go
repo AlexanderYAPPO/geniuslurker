@@ -1,6 +1,7 @@
 package geniuslurker
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -11,12 +12,38 @@ import (
 
 const maxTelegramMessageLength = 4096
 
-// SearchCommand requests geniuslurker for search results from Genius
-func SearchCommand(ctx context.Context, arg string) error {
-	api := telebot.GetAPI(ctx)
-	update := telebot.GetUpdate(ctx)
-	chatID := update.Chat().ID
+// ProduceBotCommand wraps bot handler methods
+func ProduceBotCommand(commandFunction func(chatID int64, arg string) (interface{}, error)) telebot.CommandFunc {
+	wrapper := func(ctx context.Context, arg string) error {
+		api := telebot.GetAPI(ctx)
+		chatID := telebot.GetUpdate(ctx).Chat().ID
+		commandResult, err := commandFunction(chatID, arg)
+		if err != nil {
+			return err
+		}
+		switch commandResult.(type) {
+		case string:
+			message := commandResult.(string)
+			_, err = api.SendMessage(ctx, telegram.NewMessagef(chatID, message))
+		case []string:
+			messages := commandResult.([]string)
+			for _, message := range messages {
+				_, err = api.SendMessage(ctx, telegram.NewMessagef(chatID, message))
+				if err != nil {
+					return err
+				}
+			}
+		default:
+			errorMsg := fmt.Sprintf("Unexpected return value type %T", commandResult)
+			ErrorLogger.Panicln(errorMsg)
+		}
+		return err
+	}
+	return wrapper
+}
 
+// SearchCommand requests geniuslurker for search results from Genius
+func SearchCommand(chatID int64, arg string) (interface{}, error) {
 	searchResults := GetFetcherClient().Search(arg)
 
 	redisClient := GetRedisClient()
@@ -34,19 +61,11 @@ func SearchCommand(ctx context.Context, arg string) error {
 	for index, searchResult := range searchResults {
 		message += strconv.Itoa(index) + ": " + searchResult.FullTitle + "\n"
 	}
-	_, err := api.SendMessage(ctx,
-		telegram.NewMessagef(update.Chat().ID,
-			message,
-		))
-	return err
+	return message, nil
 }
 
 // GetLyricsCommand gets lyrics from genius lurker
-func GetLyricsCommand(ctx context.Context, arg string) error {
-	api := telebot.GetAPI(ctx)
-	update := telebot.GetUpdate(ctx)
-	chatID := update.Chat().ID
-
+func GetLyricsCommand(chatID int64, arg string) (interface{}, error) {
 	redisClient := GetRedisClient()
 	redisKey := "search:" + strconv.FormatInt(chatID, 10)
 	size := redisClient.LLen(redisKey)
@@ -54,28 +73,13 @@ func GetLyricsCommand(ctx context.Context, arg string) error {
 	index, err := strconv.ParseInt(arg, 10, 64)
 	if err != nil || index < 0 || index > size {
 		InfoLogger.Println("Incorrect input in chat: "+strconv.FormatInt(chatID, 10), err)
-		_, err = api.SendMessage(ctx,
-			telegram.NewMessagef(update.Chat().ID,
-				"Incorrect input. Lyrics are not yet search or index is not in the boundaries.",
-			))
-		return err
+		errorMsg := "Incorrect input. Lyrics are not yet search or index is not in the boundaries."
+		return errorMsg, err
 	}
 
 	searchResult := redisClient.SearchResultsIndexJSON(redisKey, index)
-
 	lyrics := GetFetcherClient().GetLyrics(searchResult)
-
-	lyricsBlocks := splitTextOnBlocks(lyrics)
-	for _, block := range lyricsBlocks {
-		_, err = api.SendMessage(ctx,
-			telegram.NewMessagef(update.Chat().ID,
-				block,
-			))
-		if err != nil {
-			ErrorLogger.Panicln("Failed to send message", err)
-		}
-	}
-	return err
+	return splitTextOnBlocks(lyrics), err
 }
 
 func splitTextOnBlocks(originalText string) []string {

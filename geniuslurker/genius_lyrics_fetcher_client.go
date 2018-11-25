@@ -22,14 +22,11 @@ var fetcherClient *FetcherClient
 
 var onceFetcherClient sync.Once
 
-// GetFetcherClient returns instance of a Genius Lyrics Fetcher client
-func GetFetcherClient() *FetcherClient {
-	onceFetcherClient.Do(func() {
-		fetcherClient = &FetcherClient{
-			geniusLurkerFetcherHTTPClient: http.Client{},
-		}
-	})
-	return fetcherClient
+func NewFetcherClient() *FetcherClient {
+	newClient := &FetcherClient{
+		geniusLurkerFetcherHTTPClient: http.Client{},
+	}
+	return newClient
 }
 
 // Search searches for possible songs with urls to lyrics

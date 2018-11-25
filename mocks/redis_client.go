@@ -8,7 +8,7 @@ const redisURL = "localhost:6379"
 const redisPassowrd = "" // no password set
 const redisDB = 0        // use default DB
 
-//RedisClient is a real Redis client
+//RedisClientMock is a real Redis client
 type RedisClientMock struct {
 	storage map[string][]datastructers.SearchResult
 }
