@@ -19,7 +19,7 @@ COPY . .
 RUN go get ./...
 WORKDIR /go/bin
 RUN go build /go/src/github.com/AlexanderYAPPO/geniuslurker/geniuslurker_apps/telegram_bot/telegram_bot.go
-RUN touch /var/log/genius_lurker.log
+ADD ./geniuslurker.yaml /etc/geniuslurker.yaml
 
 # install and configure supervisor
 RUN apt-get install -y supervisor
